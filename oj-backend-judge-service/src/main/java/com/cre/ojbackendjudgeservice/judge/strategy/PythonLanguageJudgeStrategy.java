@@ -33,7 +33,7 @@ public class PythonLanguageJudgeStrategy implements JudgeStrategy {
         //先判断沙箱执行的结果输出数量是否和预期输出数量相等
         if (outputList.size() != inputList.size()) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.WRONG_ANSWER;
-            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
             return judgeInfoResponse;
         }
         //判断每一项输出和预期输出是否相等
@@ -41,7 +41,7 @@ public class PythonLanguageJudgeStrategy implements JudgeStrategy {
             JudgeCase judgeCase = judgeCaseList.get(i);
             if (!judgeCase.getOutput().equals(StringUtil.removeInvisibleCharacters(outputList.get(i)))) {
                 judgeInfoMessageEnum = JudgeInfoMessageEnum.WRONG_ANSWER;
-                judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+                judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
                 return judgeInfoResponse;
             }
         }
@@ -52,16 +52,16 @@ public class PythonLanguageJudgeStrategy implements JudgeStrategy {
         Long needTimeLimit = judgeConfig.getTimeLimit();
         if (((memory / 1024L) / 3) > needMemoryLimit) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.MEMORY_LIMIT_EXCEEDED;
-            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
             return judgeInfoResponse;
         }
         long PYTHON_PROGRAM_TIME_COST = 1500L;
         if ((time - PYTHON_PROGRAM_TIME_COST) > needTimeLimit) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.TIME_LIMIT_EXCEEDED;
-            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
             return judgeInfoResponse;
         }
-        judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+        judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
         return judgeInfoResponse;
     }
 }

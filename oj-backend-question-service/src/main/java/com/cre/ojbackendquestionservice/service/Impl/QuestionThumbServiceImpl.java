@@ -10,11 +10,14 @@ import com.cre.ojbackendmodel.model.entity.User;
 import com.cre.ojbackendquestionservice.mapper.QuestionThumbMapper;
 import com.cre.ojbackendquestionservice.service.QuestionService;
 import com.cre.ojbackendquestionservice.service.QuestionThumbService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -25,6 +28,10 @@ public class QuestionThumbServiceImpl extends ServiceImpl<QuestionThumbMapper, Q
 
     @Resource
     private QuestionService questionService;
+
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public int doQuestionThumb(Long questionId, User loginUser) {
@@ -37,9 +44,25 @@ public class QuestionThumbServiceImpl extends ServiceImpl<QuestionThumbMapper, Q
         Long userId = loginUser.getId();
         // 每个用户串行点赞
         // 锁必须要包裹住事务方法
-        QuestionThumbService questionThumbService = (QuestionThumbService) AopContext.currentProxy();
-        synchronized (String.valueOf(userId).intern()) {
-            return questionThumbService.doQuestionThumbInner(userId, questionId);
+        String lockKey = "question_thumb:lock:" + userId; // 分布式锁键
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            // 尝试获取锁，等待时间5秒，锁持有时间30秒（自动续期）
+            boolean isLocked = lock.tryLock(5, 30, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "操作过于频繁，请稍后再试");
+            }
+            // 通过代理调用事务方法
+            QuestionThumbService proxyService = (QuestionThumbService) AopContext.currentProxy();
+            return proxyService.doQuestionThumbInner(userId, questionId);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取锁失败");
+        } finally {
+            // 确保当前线程持有锁再释放
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 

@@ -40,7 +40,7 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
         //先判断沙箱执行的结果输出数量是否和预期输出数量相等
         if (outputList.size() != inputList.size()) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.WRONG_ANSWER;
-            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
             return judgeInfoResponse;
         }
         //判断每一项输出和预期输出是否相等
@@ -48,7 +48,7 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
             JudgeCase judgeCase = judgeCaseList.get(i);
             if (!judgeCase.getOutput().equals(StringUtil.removeInvisibleCharacters(outputList.get(i)))) {
                 judgeInfoMessageEnum = JudgeInfoMessageEnum.WRONG_ANSWER;
-                judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+                judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
                 return judgeInfoResponse;
             }
         }
@@ -59,17 +59,17 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
         Long needTimeLimit = judgeConfig.getTimeLimit();
         if (((memory / 1024L) / 2) > needMemoryLimit) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.MEMORY_LIMIT_EXCEEDED;
-            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
             return judgeInfoResponse;
         }
         //Java程序本身需要额外执行10秒钟
         long JAVA_PROGRAM_TIME_COST = 1000L;
         if ((time - JAVA_PROGRAM_TIME_COST) > needTimeLimit) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.TIME_LIMIT_EXCEEDED;
-            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+            judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
             return judgeInfoResponse;
         }
-        judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
+        judgeInfoResponse.setMessage(judgeInfoMessageEnum.getText());
         return judgeInfoResponse;
     }
 }

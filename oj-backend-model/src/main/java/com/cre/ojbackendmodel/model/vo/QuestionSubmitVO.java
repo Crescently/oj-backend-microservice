@@ -55,10 +55,6 @@ public class QuestionSubmitVO implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
     /**
-     * 提交用户信息
-     */
-    private UserVO userVO;
-    /**
      * 相关问题信息
      */
     private QuestionVO questionVO;

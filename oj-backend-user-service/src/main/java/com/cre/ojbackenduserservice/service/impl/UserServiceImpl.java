@@ -24,11 +24,14 @@ import com.cre.ojbackenduserservice.mapper.UserMapper;
 import com.cre.ojbackenduserservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.TimeUnit;
 
 import static com.cre.ojbackendcommon.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -39,6 +42,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private UserMapper userMapper;
+
+
+    @Resource
+    private RedissonClient redissonClient;
 
 
     @Override
@@ -53,22 +60,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, MessageConstant.TWO_PWD_NOT_MATCH);
         }
 
-        synchronized (userAccount.intern()) {
-            // 查询数据库是否已有账户名
+
+        String lockKey = "user:register:lock:" + userAccount;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        try {
+            // 尝试获取锁（最多等待5秒，锁自动释放时间30秒）
+            boolean isLocked = lock.tryLock(5, 30, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "系统繁忙，请稍后重试");
+            }
+            // 在锁的保护下执行注册逻辑
             QueryWrapper<User> wrapper = new QueryWrapper<>();
-            wrapper.select("*").eq("user_account", userAccount);
-            User user = userMapper.selectOne(wrapper);
-            if (user != null) {
+            wrapper.eq("user_account", userAccount);
+            User existingUser = userMapper.selectOne(wrapper);
+            if (existingUser != null) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, MessageConstant.USERNAME_ALREADY_EXIST);
             }
-            // 首先对密码进行加密，保证安全性
             String md5Password = Md5Util.getMD5String(userPassword);
-
-            user = User.builder().userAccount(userAccount).userPassword(md5Password).username(username).userEmail(userEmail)
-                    // 默认注册用户是普通用户
-                    .userRole(UserRoleEnum.USER.getValue()).build();
-            // 将用户信息插入数据库
-            userMapper.insert(user);
+            User newUser = User.builder().userAccount(userAccount).userPassword(md5Password).username(username).userEmail(userEmail).userRole(UserRoleEnum.USER.getValue()).build();
+            userMapper.insert(newUser);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册服务暂时不可用");
+        } finally {
+            // 确保释放锁且不误删其他线程的锁
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 
@@ -238,7 +257,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-    更新头像
+     * 更新头像
      */
     @Override
     public void updateAvatar(UserUpdateAvatarRequest userUpdateAvatarRequest) {
