@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cre.ojbackenduserservice.mapper.SignInMapper">
+
+    <select id="findSignDates" resultType="java.time.LocalDateTime">
+        SELECT sign_date
+        FROM user_sign_in
+        WHERE user_id = #{userId}
+          AND sign_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY sign_date
+    </select>
+</mapper>

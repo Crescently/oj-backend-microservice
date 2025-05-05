@@ -5,11 +5,9 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class UserUpdateAvatarRequest implements Serializable {
+public class IdRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    private String avatarUrl;
 
     private Long userId;
 }

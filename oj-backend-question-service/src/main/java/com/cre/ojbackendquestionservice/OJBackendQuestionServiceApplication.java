@@ -8,6 +8,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @MapperScan(basePackages = "com.cre.ojbackendquestionservice.mapper")
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @ComponentScan("com.cre")
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.cre.ojbackendserviceclient.service"})
+@EnableScheduling
 public class OJBackendQuestionServiceApplication {
 
     public static void main(String[] args) {

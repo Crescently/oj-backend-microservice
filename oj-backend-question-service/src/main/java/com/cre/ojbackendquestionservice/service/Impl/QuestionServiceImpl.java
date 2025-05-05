@@ -9,12 +9,14 @@ import com.cre.ojbackendcommon.constant.CommonConstant;
 import com.cre.ojbackendcommon.exception.BusinessException;
 import com.cre.ojbackendcommon.exception.ThrowUtils;
 import com.cre.ojbackendcommon.utils.SqlUtils;
+import com.cre.ojbackendmodel.model.dto.QuestionStatDTO;
 import com.cre.ojbackendmodel.model.entity.*;
 import com.cre.ojbackendmodel.model.request.question.QuestionQueryRequest;
 import com.cre.ojbackendmodel.model.vo.QuestionVO;
 import com.cre.ojbackendmodel.model.vo.UserVO;
 import com.cre.ojbackendquestionservice.mapper.QuestionFavourMapper;
 import com.cre.ojbackendquestionservice.mapper.QuestionMapper;
+import com.cre.ojbackendquestionservice.mapper.QuestionSubmitMapper;
 import com.cre.ojbackendquestionservice.mapper.QuestionThumbMapper;
 import com.cre.ojbackendquestionservice.service.QuestionService;
 import com.cre.ojbackendserviceclient.service.UserFeignClient;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +49,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private QuestionThumbMapper questionThumbMapper;
+
+    @Resource
+    private QuestionSubmitMapper questionSubmitMapper;
+
+    @Resource
+    private QuestionMapper questionMapper;
 
     /**
      * 校验题目合法
@@ -159,7 +168,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     public Page<QuestionVO> getHistoryQuestionVOPage(Page<QuestionSubmit> questionSubmitPage, HttpServletRequest request) {
         List<QuestionSubmit> questionSubmitList = questionSubmitPage.getRecords();
-        Page<QuestionVO> questionVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize(), questionSubmitPage.getTotal());
+        Page<QuestionVO> questionVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize());
         if (CollUtil.isEmpty(questionSubmitList)) {
             return questionVOPage;
         }
@@ -181,6 +190,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);
+        questionVOPage.setTotal(questionVOList.toArray().length);
         return questionVOPage;
     }
 
@@ -227,6 +237,22 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
+    }
+
+    @Transactional
+    public void updateSubmitAndAcceptedNum() {
+        List<QuestionStatDTO> submitStats = questionSubmitMapper.countTotalSubmissions();
+        List<QuestionStatDTO> acceptedStats = questionSubmitMapper.countAcceptedSubmissions();
+
+        Map<Long, Integer> acceptedMap = acceptedStats.stream().collect(Collectors.toMap(QuestionStatDTO::getQuestionId, QuestionStatDTO::getCount));
+
+        for (QuestionStatDTO submitStat : submitStats) {
+            Long questionId = submitStat.getQuestionId();
+            Integer submitCount = submitStat.getCount();
+            Integer acceptedCount = acceptedMap.getOrDefault(questionId, 0);
+
+            questionMapper.updateSubmitAndAcceptedNum(questionId, submitCount, acceptedCount);
+        }
     }
 }
 
