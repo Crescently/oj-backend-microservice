@@ -2,54 +2,42 @@ package com.cre.ojbackendmodel.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 题目提交
+ * 评论
  */
-@TableName(value = "question_submit")
 @Data
-public class QuestionSubmit implements Serializable {
-
+@TableName("post_comment")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class PostComment implements Serializable {
     private static final long serialVersionUID = 1L;
-    /**
-     * id
-     */
-    @TableId(type = IdType.ASSIGN_ID)
+
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
-     * 编程语言
+     * 用户ID
      */
-    private String language;
+    private Long userId;
 
     /**
-     * 用户代码
-     */
-    private String code;
-
-    /**
-     * 判题信息（json 对象）
-     */
-    private String judgeInfo;
-
-    /**
-     * 判题状态（0 - 待判题、1 - 判题中、2 - 成功、3 - 失败）
-     */
-    private Integer status;
-
-    /**
-     * 题目 id
+     * 问题ID
      */
     private Long questionId;
 
     /**
-     * 创建用户 id
+     * 内容
      */
-    private Long userId;
+    private String content;
 
     /**
      * 创建时间

@@ -59,8 +59,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!userPassword.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, MessageConstant.TWO_PWD_NOT_MATCH);
         }
-
-
         String lockKey = "user:register:lock:" + userAccount;
         RLock lock = redissonClient.getLock(lockKey);
 

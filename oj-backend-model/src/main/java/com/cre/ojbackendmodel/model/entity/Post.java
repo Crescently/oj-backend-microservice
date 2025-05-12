@@ -8,49 +8,47 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 题目提交
+ * 帖子
  */
-@TableName(value = "question_submit")
+@TableName(value = "post")
 @Data
-public class QuestionSubmit implements Serializable {
+public class Post implements Serializable {
 
+    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
     /**
      * id
      */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
-
     /**
-     * 编程语言
+     * 标题
      */
-    private String language;
-
+    private String title;
     /**
-     * 用户代码
+     * 内容
      */
-    private String code;
-
+    private String content;
     /**
-     * 判题信息（json 对象）
+     * 标签列表 json
      */
-    private String judgeInfo;
-
+    private String tags;
     /**
-     * 判题状态（0 - 待判题、1 - 判题中、2 - 成功、3 - 失败）
+     * 点赞数
      */
-    private Integer status;
-
+    private Integer thumbNum;
     /**
-     * 题目 id
+     * 收藏数
      */
-    private Long questionId;
-
+    private Integer favourNum;
+    /**
+     * 浏览量
+     */
+    private Integer viewCount;
     /**
      * 创建用户 id
      */
     private Long userId;
-
     /**
      * 创建时间
      */

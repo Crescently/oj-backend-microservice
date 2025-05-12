@@ -16,6 +16,8 @@
         <module>oj-backend-question-service</module>
         <module>oj-backend-user-service</module>
         <module>oj-backend-judge-service</module>
+        <module>oj-backend-post-service</module>
+
     </modules>
     <properties>
         <java.version>1.8</java.version>
