@@ -2,6 +2,7 @@ package com.cre.ojbackendpostservice.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cre.ojbackendcommon.common.ErrorCode;
@@ -9,13 +10,11 @@ import com.cre.ojbackendcommon.constant.CommonConstant;
 import com.cre.ojbackendcommon.exception.BusinessException;
 import com.cre.ojbackendcommon.exception.ThrowUtils;
 import com.cre.ojbackendcommon.utils.SqlUtils;
-import com.cre.ojbackendmodel.model.entity.Post;
-import com.cre.ojbackendmodel.model.entity.PostFavour;
-import com.cre.ojbackendmodel.model.entity.PostThumb;
-import com.cre.ojbackendmodel.model.entity.User;
+import com.cre.ojbackendmodel.model.entity.*;
 import com.cre.ojbackendmodel.model.request.post.PostQueryRequest;
 import com.cre.ojbackendmodel.model.vo.PostVO;
 import com.cre.ojbackendmodel.model.vo.UserVO;
+import com.cre.ojbackendpostservice.mapper.PostCommentMapper;
 import com.cre.ojbackendpostservice.mapper.PostFavourMapper;
 import com.cre.ojbackendpostservice.mapper.PostMapper;
 import com.cre.ojbackendpostservice.mapper.PostThumbMapper;
@@ -24,6 +23,7 @@ import com.cre.ojbackendserviceclient.service.UserFeignClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,13 +32,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * 帖子服务实现
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @Service
 @Slf4j
@@ -52,6 +50,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Resource
     private PostFavourMapper postFavourMapper;
+
+    @Resource
+    private PostCommentMapper postCommentMapper;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -123,7 +127,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             user = userFeignClient.getById(userId);
         }
         UserVO userVO = userFeignClient.getUserVO(user);
-        postVO.setUser(userVO);
+        postVO.setUserVO(userVO);
         // 2. 已登录，获取用户点赞、收藏状态
         User loginUser = userFeignClient.getLoginUser(request);
         if (loginUser != null) {
@@ -140,6 +144,10 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             PostFavour postFavour = postFavourMapper.selectOne(postFavourQueryWrapper);
             postVO.setHasFavour(postFavour != null);
         }
+
+        // 3. 获取评论数
+        List<PostComment> postCommentList = postCommentMapper.selectList(new QueryWrapper<PostComment>().eq("post_id", postId));
+        postVO.setCommentCount(postCommentList.size());
         return postVO;
     }
 
@@ -173,6 +181,10 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             List<PostFavour> postFavourList = postFavourMapper.selectList(postFavourQueryWrapper);
             postFavourList.forEach(postFavour -> postIdHasFavourMap.put(postFavour.getPostId(), true));
         }
+
+        // 3. 获取评论数
+        Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
+        Map<Long, List<PostComment>> postIdHasCommentMap = postCommentMapper.selectByPostIds(postIdSet).stream().collect(Collectors.groupingBy(PostComment::getPostId));
         // 填充信息
         List<PostVO> postVOList = postList.stream().map(post -> {
             PostVO postVO = PostVO.objToVo(post);
@@ -181,14 +193,40 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            postVO.setUser(userFeignClient.getUserVO(user));
+            postVO.setUserVO(userFeignClient.getUserVO(user));
             postVO.setHasThumb(postIdHasThumbMap.getOrDefault(post.getId(), false));
             postVO.setHasFavour(postIdHasFavourMap.getOrDefault(post.getId(), false));
+            if (postIdHasCommentMap.containsKey(post.getId())) {
+                postVO.setCommentCount(postIdHasCommentMap.get(post.getId()).size());
+            }
             return postVO;
         }).collect(Collectors.toList());
         postVOPage.setRecords(postVOList);
         return postVOPage;
     }
+
+    @Override
+    public boolean incrementViewCountOnce(Long postId, Long userId) {
+        if (postId == null || userId == null || postId <= 0 || userId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        String redisKey = "post:view:" + postId + ":" + userId;
+        Boolean hasViewed = stringRedisTemplate.hasKey(redisKey);
+        if (hasViewed) {
+            return false;
+        }
+        LambdaUpdateWrapper<Post> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Post::getId, postId).setSql("view_count = view_count + 1");
+        boolean updated = this.update(updateWrapper);
+
+        if (updated) {
+            stringRedisTemplate.opsForValue().set(redisKey, "1", 24, TimeUnit.HOURS);
+        }
+
+        return updated;
+    }
+
 
 }
 

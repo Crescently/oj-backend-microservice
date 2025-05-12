@@ -9,7 +9,6 @@ import com.cre.ojbackendmodel.model.entity.Post;
 import com.cre.ojbackendmodel.model.entity.User;
 import com.cre.ojbackendmodel.model.request.post.PostQueryRequest;
 import com.cre.ojbackendmodel.model.request.postfavour.PostFavourAddRequest;
-import com.cre.ojbackendmodel.model.request.postfavour.PostFavourQueryRequest;
 import com.cre.ojbackendmodel.model.vo.PostVO;
 import com.cre.ojbackendpostservice.service.PostFavourService;
 import com.cre.ojbackendpostservice.service.PostService;
@@ -27,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
  * 帖子收藏接口
  */
 @RestController
-@RequestMapping("/post_favour")
+@RequestMapping("/favour")
 @Slf4j
 public class PostFavourController {
 
@@ -44,13 +43,15 @@ public class PostFavourController {
      * 收藏 / 取消收藏
      */
     @PostMapping("/")
-    public BaseResponse<Integer> doPostFavour(@RequestBody PostFavourAddRequest postFavourAddRequest,
-                                              HttpServletRequest request) {
+    public BaseResponse<Integer> doPostFavour(@RequestBody PostFavourAddRequest postFavourAddRequest, HttpServletRequest request) {
         if (postFavourAddRequest == null || postFavourAddRequest.getPostId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 登录才能操作
         final User loginUser = userFeignClient.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
         long postId = postFavourAddRequest.getPostId();
         int result = postFavourService.doPostFavour(postId, loginUser);
         return BaseResponse.success(result);
@@ -60,8 +61,7 @@ public class PostFavourController {
      * 获取我收藏的帖子列表
      */
     @PostMapping("/my/list/page")
-    public BaseResponse<Page<PostVO>> listMyFavourPostByPage(@RequestBody PostQueryRequest postQueryRequest,
-                                                             HttpServletRequest request) {
+    public BaseResponse<Page<PostVO>> listMyFavourPostByPage(@RequestBody PostQueryRequest postQueryRequest, HttpServletRequest request) {
         if (postQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -70,27 +70,8 @@ public class PostFavourController {
         long size = postQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Post> postPage = postFavourService.listFavourPostByPage(new Page<>(current, size),
-                postService.getQueryWrapper(postQueryRequest), loginUser.getId());
+        Page<Post> postPage = postFavourService.listFavourPostByPage(new Page<>(current, size), postService.getQueryWrapper(postQueryRequest), loginUser.getId());
         return BaseResponse.success(postService.getPostVOPage(postPage, request));
     }
 
-    /**
-     * 获取用户收藏的帖子列表
-     */
-    @PostMapping("/list/page")
-    public BaseResponse<Page<PostVO>> listFavourPostByPage(@RequestBody PostFavourQueryRequest postFavourQueryRequest,
-                                                           HttpServletRequest request) {
-        if (postFavourQueryRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        long current = postFavourQueryRequest.getCurrent();
-        long size = postFavourQueryRequest.getPageSize();
-        Long userId = postFavourQueryRequest.getUserId();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20 || userId == null, ErrorCode.PARAMS_ERROR);
-        Page<Post> postPage = postFavourService.listFavourPostByPage(new Page<>(current, size),
-                postService.getQueryWrapper(postFavourQueryRequest.getPostQueryRequest()), userId);
-        return BaseResponse.success(postService.getPostVOPage(postPage, request));
-    }
 }

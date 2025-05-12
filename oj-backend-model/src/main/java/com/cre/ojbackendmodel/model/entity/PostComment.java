@@ -30,9 +30,9 @@ public class PostComment implements Serializable {
     private Long userId;
 
     /**
-     * 问题ID
+     * 帖子ID
      */
-    private Long questionId;
+    private Long postId;
 
     /**
      * 内容

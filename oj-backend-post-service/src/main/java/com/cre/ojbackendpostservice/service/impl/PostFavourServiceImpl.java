@@ -13,11 +13,14 @@ import com.cre.ojbackendmodel.model.entity.User;
 import com.cre.ojbackendpostservice.mapper.PostFavourMapper;
 import com.cre.ojbackendpostservice.service.PostFavourService;
 import com.cre.ojbackendpostservice.service.PostService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 帖子收藏服务实现
@@ -27,6 +30,8 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
 
     @Resource
     private PostService postService;
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 帖子收藏
@@ -41,19 +46,34 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
         // 是否已帖子收藏
         long userId = loginUser.getId();
         // 每个用户串行帖子收藏
-        // 锁必须要包裹住事务方法
-        PostFavourService postFavourService = (PostFavourService) AopContext.currentProxy();
-        synchronized (String.valueOf(userId).intern()) {
-            return postFavourService.doPostFavourInner(userId, postId);
+        String lockKey = "post_favour:lock:" + userId; // 分布式锁键
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            // 尝试获取锁，等待时间5秒，锁持有时间30秒（自动续期）
+            boolean isLocked = lock.tryLock(5, 30, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "操作过于频繁，请稍后再试");
+            }
+            // 通过代理调用事务方法
+            PostFavourService proxyService = (PostFavourService) AopContext.currentProxy();
+            return proxyService.doPostFavourInner(userId, postId);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取锁失败");
+        } finally {
+            // 确保当前线程持有锁再释放
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 
     @Override
-    public Page<Post> listFavourPostByPage(IPage<Post> page, Wrapper<Post> queryWrapper, long favourUserId) {
-        if (favourUserId <= 0) {
+    public Page<Post> listFavourPostByPage(IPage<Post> page, Wrapper<Post> queryWrapper, long userId) {
+        if (userId <= 0) {
             return new Page<>();
         }
-        return baseMapper.listFavourPostByPage(page, queryWrapper, favourUserId);
+        return baseMapper.listFavourPostByPage(page, queryWrapper, userId);
     }
 
     /**

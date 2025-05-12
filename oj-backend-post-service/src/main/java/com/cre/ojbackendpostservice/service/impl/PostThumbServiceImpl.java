@@ -10,24 +10,26 @@ import com.cre.ojbackendmodel.model.entity.User;
 import com.cre.ojbackendpostservice.mapper.PostThumbMapper;
 import com.cre.ojbackendpostservice.service.PostService;
 import com.cre.ojbackendpostservice.service.PostThumbService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 帖子点赞服务实现
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @Service
-public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb>
-        implements PostThumbService {
+public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb> implements PostThumbService {
 
     @Resource
     private PostService postService;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 点赞
@@ -42,10 +44,25 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
         // 是否已点赞
         long userId = loginUser.getId();
         // 每个用户串行点赞
-        // 锁必须要包裹住事务方法
-        PostThumbService postThumbService = (PostThumbService) AopContext.currentProxy();
-        synchronized (String.valueOf(userId).intern()) {
-            return postThumbService.doPostThumbInner(userId, postId);
+        String lockKey = "post_thumb:lock:" + userId; // 分布式锁键
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            // 尝试获取锁，等待时间5秒，锁持有时间30秒（自动续期）
+            boolean isLocked = lock.tryLock(5, 30, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "操作过于频繁，请稍后再试");
+            }
+            // 通过代理调用事务方法
+            PostThumbService proxyService = (PostThumbService) AopContext.currentProxy();
+            return proxyService.doPostThumbInner(userId, postId);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "获取锁失败");
+        } finally {
+            // 确保当前线程持有锁再释放
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 
@@ -66,11 +83,7 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
             result = this.remove(thumbQueryWrapper);
             if (result) {
                 // 点赞数 - 1
-                result = postService.update()
-                        .eq("id", postId)
-                        .gt("thumb_num", 0)
-                        .setSql("thumb_num = thumb_num - 1")
-                        .update();
+                result = postService.update().eq("id", postId).gt("thumb_num", 0).setSql("thumb_num = thumb_num - 1").update();
                 return result ? -1 : 0;
             } else {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -80,10 +93,7 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
             result = this.save(postThumb);
             if (result) {
                 // 点赞数 + 1
-                result = postService.update()
-                        .eq("id", postId)
-                        .setSql("thumb_num = thumb_num + 1")
-                        .update();
+                result = postService.update().eq("id", postId).setSql("thumb_num = thumb_num + 1").update();
                 return result ? 1 : 0;
             } else {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);

@@ -21,7 +21,7 @@ public interface PostFavourService extends IService<PostFavour> {
     /**
      * 分页获取用户收藏的帖子列表
      */
-    Page<Post> listFavourPostByPage(IPage<Post> page, Wrapper<Post> queryWrapper, long favourUserId);
+    Page<Post> listFavourPostByPage(IPage<Post> page, Wrapper<Post> queryWrapper, long userId);
 
     /**
      * 帖子收藏（内部服务）

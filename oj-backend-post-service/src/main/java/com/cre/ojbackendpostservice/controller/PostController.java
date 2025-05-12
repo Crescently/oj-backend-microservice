@@ -2,11 +2,9 @@ package com.cre.ojbackendpostservice.controller;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.cre.ojbackendcommon.annotation.AuthCheck;
 import com.cre.ojbackendcommon.common.BaseResponse;
 import com.cre.ojbackendcommon.common.DeleteRequest;
 import com.cre.ojbackendcommon.common.ErrorCode;
-import com.cre.ojbackendcommon.constant.UserConstant;
 import com.cre.ojbackendcommon.exception.BusinessException;
 import com.cre.ojbackendcommon.exception.ThrowUtils;
 import com.cre.ojbackendmodel.model.entity.Post;
@@ -14,7 +12,6 @@ import com.cre.ojbackendmodel.model.entity.User;
 import com.cre.ojbackendmodel.model.request.post.PostAddRequest;
 import com.cre.ojbackendmodel.model.request.post.PostEditRequest;
 import com.cre.ojbackendmodel.model.request.post.PostQueryRequest;
-import com.cre.ojbackendmodel.model.request.post.PostUpdateRequest;
 import com.cre.ojbackendmodel.model.vo.PostVO;
 import com.cre.ojbackendpostservice.service.PostService;
 import com.cre.ojbackendserviceclient.service.UserFeignClient;
@@ -30,7 +27,7 @@ import java.util.List;
  * 帖子接口
  */
 @RestController
-@RequestMapping("/post")
+@RequestMapping("/")
 @Slf4j
 public class PostController {
 
@@ -41,6 +38,7 @@ public class PostController {
     private UserFeignClient userFeignClient;
 
     // region 增删改查
+
     /**
      * 创建
      */
@@ -87,28 +85,13 @@ public class PostController {
         return BaseResponse.success(b);
     }
 
-    /**
-     * 更新（仅管理员）
-     */
-    @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updatePost(@RequestBody PostUpdateRequest postUpdateRequest) {
-        if (postUpdateRequest == null || postUpdateRequest.getId() <= 0) {
+    @GetMapping("/update/view")
+    public BaseResponse<Boolean> updatePostView(Long id, HttpServletRequest request) {
+        if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Post post = new Post();
-        BeanUtils.copyProperties(postUpdateRequest, post);
-        List<String> tags = postUpdateRequest.getTags();
-        if (tags != null) {
-            post.setTags(JSONUtil.toJsonStr(tags));
-        }
-        // 参数校验
-        postService.validPost(post, false);
-        long id = postUpdateRequest.getId();
-        // 判断是否存在
-        Post oldPost = postService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
-        boolean result = postService.updateById(post);
+        User loginUser = userFeignClient.getLoginUser(request);
+        boolean result = postService.incrementViewCountOnce(id, loginUser.getId());
         return BaseResponse.success(result);
     }
 
@@ -125,18 +108,6 @@ public class PostController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         return BaseResponse.success(postService.getPostVO(post, request));
-    }
-
-    /**
-     * 分页获取列表（仅管理员）
-     */
-    @PostMapping("/list/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<Post>> listPostByPage(@RequestBody PostQueryRequest postQueryRequest) {
-        long current = postQueryRequest.getCurrent();
-        long size = postQueryRequest.getPageSize();
-        Page<Post> postPage = postService.page(new Page<>(current, size), postService.getQueryWrapper(postQueryRequest));
-        return BaseResponse.success(postPage);
     }
 
     /**

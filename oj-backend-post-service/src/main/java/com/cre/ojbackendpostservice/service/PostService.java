@@ -34,4 +34,6 @@ public interface PostService extends IService<Post> {
      * 分页获取帖子封装
      */
     Page<PostVO> getPostVOPage(Page<Post> postPage, HttpServletRequest request);
+
+    boolean incrementViewCountOnce(Long postId, Long userId);
 }

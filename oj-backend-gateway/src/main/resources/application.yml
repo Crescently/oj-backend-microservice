@@ -18,7 +18,7 @@ spring:
           predicates:
             - Path=/api/judge/**
         - id: oj-backend-post-service
-          uri: lb://oj-post-judge-service
+          uri: lb://oj-backend-post-service
           predicates:
             - Path=/api/post/**
   application:

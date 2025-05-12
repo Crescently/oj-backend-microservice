@@ -8,7 +8,7 @@
             resultType="com.cre.ojbackendmodel.model.entity.Post">
         select p.*
         from post p
-                 join (select post_id from post_favour where user_id = #{favourUserId}) pf
+                 join (select post_id from post_favour where user_id = #{userId}) pf
                       on p.id = pf.post_id ${ew.customSqlSegment}
     </select>
 </mapper>

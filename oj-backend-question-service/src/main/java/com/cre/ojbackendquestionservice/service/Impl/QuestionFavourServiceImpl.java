@@ -36,11 +36,7 @@ public class QuestionFavourServiceImpl extends ServiceImpl<QuestionFavourMapper,
     private RedissonClient redissonClient;
 
     /**
-     * 帖子收藏
-     *
-     * @param questionId
-     * @param loginUser
-     * @return
+     * 问题收藏
      */
     @Override
     public int doQuestionFavour(Long questionId, User loginUser) {
@@ -49,10 +45,8 @@ public class QuestionFavourServiceImpl extends ServiceImpl<QuestionFavourMapper,
         if (question == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        // 是否已帖子收藏
+        // 是否已收藏
         Long userId = loginUser.getId();
-        // 每个用户串行帖子收藏
-        // 锁必须要包裹住事务方法
         String lockKey = "question_favour:lock:" + userId; // 分布式锁键
         RLock lock = redissonClient.getLock(lockKey);
         try {
@@ -86,10 +80,6 @@ public class QuestionFavourServiceImpl extends ServiceImpl<QuestionFavourMapper,
 
     /**
      * 封装了事务的方法
-     *
-     * @param userId
-     * @param questionId
-     * @return
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

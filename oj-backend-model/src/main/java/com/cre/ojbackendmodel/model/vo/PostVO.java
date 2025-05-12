@@ -2,11 +2,12 @@ package com.cre.ojbackendmodel.model.vo;
 
 import cn.hutool.json.JSONUtil;
 import com.cre.ojbackendmodel.model.entity.Post;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -43,6 +44,10 @@ public class PostVO implements Serializable {
     private Integer viewCount;
 
     /**
+     * 评论数
+     */
+    private Integer commentCount;
+    /**
      * 创建用户 id
      */
     private Long userId;
@@ -50,22 +55,23 @@ public class PostVO implements Serializable {
     /**
      * 创建时间
      */
-    private Date createTime;
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
     /**
      * 更新时间
      */
-    private Date updateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
 
     /**
      * 标签列表
      */
-    private List<String> tagList;
+    private List<String> tags;
 
     /**
      * 创建人信息
      */
-    private UserVO user;
+    private UserVO userVO;
 
     /**
      * 是否已点赞
@@ -84,7 +90,7 @@ public class PostVO implements Serializable {
         }
         Post post = new Post();
         BeanUtils.copyProperties(postVO, post);
-        List<String> tagList = postVO.getTagList();
+        List<String> tagList = postVO.getTags();
         post.setTags(JSONUtil.toJsonStr(tagList));
         return post;
     }
@@ -96,7 +102,7 @@ public class PostVO implements Serializable {
         }
         PostVO postVO = new PostVO();
         BeanUtils.copyProperties(post, postVO);
-        postVO.setTagList(JSONUtil.toList(post.getTags(), String.class));
+        postVO.setTags(JSONUtil.toList(post.getTags(), String.class));
         return postVO;
     }
 }

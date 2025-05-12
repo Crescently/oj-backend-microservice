@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
  * 帖子点赞接口
  */
 @RestController
-@RequestMapping("/post_thumb")
+@RequestMapping("/thumb")
 @Slf4j
 public class PostThumbController {
 
@@ -34,7 +34,7 @@ public class PostThumbController {
      * 点赞 / 取消点赞
      */
     @PostMapping("/")
-    public BaseResponse<Integer> doThumb(@RequestBody PostThumbAddRequest postThumbAddRequest,
+    public BaseResponse<Integer> doPostThumb(@RequestBody PostThumbAddRequest postThumbAddRequest,
                                          HttpServletRequest request) {
         if (postThumbAddRequest == null || postThumbAddRequest.getPostId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
