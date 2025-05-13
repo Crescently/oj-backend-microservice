@@ -76,7 +76,6 @@ public class QuestionFavourController {
         if (size > 20) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-
         Page<Question> questionPage = questionFavourService.listFavourQuestionByPage(new Page<>(current, size), questionService.getQueryWrapper(questionQueryRequest), loginUser.getId());
         return BaseResponse.success(questionService.getQuestionVOPage(questionPage, request));
     }

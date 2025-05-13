@@ -43,10 +43,5 @@ public class PostFavour implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    @TableField("isDelete")
-    private Integer isDelete;
+
 }

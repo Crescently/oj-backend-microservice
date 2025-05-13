@@ -122,6 +122,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
+        queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
         return queryWrapper;
     }
@@ -166,9 +167,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return questionVO;
     }
 
-    public Page<QuestionVO> getHistoryQuestionVOPage(Page<QuestionSubmit> questionSubmitPage, HttpServletRequest request) {
+    public Page<QuestionVO> getHistoryQuestionVOPage(Page<QuestionSubmit> questionSubmitPage, long loginUserId) {
         List<QuestionSubmit> questionSubmitList = questionSubmitPage.getRecords();
-        Page<QuestionVO> questionVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize());
+        Page<QuestionVO> questionVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize(), questionSubmitPage.getTotal());
         if (CollUtil.isEmpty(questionSubmitList)) {
             return questionVOPage;
         }
@@ -190,7 +191,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);
-        questionVOPage.setTotal(questionVOList.toArray().length);
+        int questionCount = questionSubmitMapper.countDistinctQuestionsByUserId(loginUserId);
+        questionVOPage.setTotal(questionCount);
         return questionVOPage;
     }
 
