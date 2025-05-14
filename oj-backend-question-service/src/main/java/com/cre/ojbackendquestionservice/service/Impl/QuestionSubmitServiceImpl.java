@@ -138,7 +138,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             if (questionIdQuestionListMap.containsKey(questionId)) {
                 question = questionIdQuestionListMap.get(questionId).get(0);
             }
-            questionSubmitVO.setQuestionVO(questionService.getQuestionVO(question));
+            questionSubmitVO.setQuestionVO(questionService.getQuestionVO(question, loginUser.getId()));
             return questionSubmitVO;
         }).collect(Collectors.toList());
 

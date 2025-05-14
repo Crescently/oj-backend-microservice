@@ -129,11 +129,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
 
     @Override
-    public QuestionVO getQuestionVO(Question question) {
+    public QuestionVO getQuestionVO(Question question,Long userId) {
         QuestionVO questionVO = QuestionVO.objToVo(question);
         long questionId = question.getId();
         // 1. 关联查询用户信息
-        Long userId = question.getUserId();
         User user = null;
         if (userId != null && userId > 0) {
             user = userFeignClient.getById(userId);

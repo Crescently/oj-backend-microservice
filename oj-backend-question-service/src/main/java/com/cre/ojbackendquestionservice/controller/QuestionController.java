@@ -157,7 +157,7 @@ public class QuestionController {
      * 根据 id 获取 (脱敏)
      */
     @GetMapping("/get/vo")
-    public BaseResponse<QuestionVO> getQuestionVOById(Long id) {
+    public BaseResponse<QuestionVO> getQuestionVOById(Long id,HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -165,7 +165,9 @@ public class QuestionController {
         if (question == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return BaseResponse.success(questionService.getQuestionVO(question));
+        User user = userFeignClient.getLoginUser(request);
+
+        return BaseResponse.success(questionService.getQuestionVO(question,user.getId()));
     }
 
     /**
