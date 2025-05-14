@@ -16,6 +16,7 @@ import com.cre.ojbackendmodel.model.enums.QuestionSubmitStatusEnum;
 import com.cre.ojbackendmodel.model.request.questionsubmit.QuestionSubmitAddRequest;
 import com.cre.ojbackendmodel.model.request.questionsubmit.QuestionSubmitQueryRequest;
 import com.cre.ojbackendmodel.model.vo.QuestionSubmitVO;
+import com.cre.ojbackendmodel.model.vo.UserVO;
 import com.cre.ojbackendquestionservice.mapper.QuestionSubmitMapper;
 import com.cre.ojbackendquestionservice.rabbitmq.MyMessageProducer;
 import com.cre.ojbackendquestionservice.service.QuestionService;
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,11 +120,19 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         if (!Objects.equals(userId, questionSubmit.getUserId()) && !userFeignClient.isAdmin(loginUser)) {
             questionSubmitVO.setCode(null);
         }
+        // 获取对应的用户信息
+        Long userSubmitId = questionSubmit.getUserId();
+        User user = null;
+        if (userSubmitId != null && userSubmitId > 0) {
+            user = userFeignClient.getById(userSubmitId);
+        }
+        UserVO userVO = userFeignClient.getUserVO(user);
+        questionSubmitVO.setUserVO(userVO);
         return questionSubmitVO;
     }
 
     @Override
-    public Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser) {
+    public Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser, HttpServletRequest request) {
         List<QuestionSubmit> questionSubmitList = questionSubmitPage.getRecords();
         Page<QuestionSubmitVO> questionSubmitVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize(), questionSubmitPage.getTotal());
         if (CollUtil.isEmpty(questionSubmitList)) {
@@ -138,7 +148,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             if (questionIdQuestionListMap.containsKey(questionId)) {
                 question = questionIdQuestionListMap.get(questionId).get(0);
             }
-            questionSubmitVO.setQuestionVO(questionService.getQuestionVO(question, loginUser.getId()));
+            questionSubmitVO.setQuestionVO(questionService.getQuestionVO(question, request));
             return questionSubmitVO;
         }).collect(Collectors.toList());
 

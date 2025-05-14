@@ -129,10 +129,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
 
     @Override
-    public QuestionVO getQuestionVO(Question question,Long userId) {
+    public QuestionVO getQuestionVO(Question question, HttpServletRequest request) {
         QuestionVO questionVO = QuestionVO.objToVo(question);
         long questionId = question.getId();
         // 1. 关联查询用户信息
+        Long userId = question.getUserId();
         User user = null;
         if (userId != null && userId > 0) {
             user = userFeignClient.getById(userId);
@@ -140,29 +141,21 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         UserVO userVO = userFeignClient.getUserVO(user);
         questionVO.setUserVO(userVO);
 
-        //2. 根据文章id查询当前用户是否收藏
-        QueryWrapper<QuestionFavour> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("question_id", questionId);
-        List<QuestionFavour> questionFavours = questionFavourMapper.selectList(queryWrapper);
-        if (questionFavours.isEmpty()) {
-            questionVO.setFavour(false);
-        } else {
-            for (QuestionFavour questionFavour : questionFavours) {
-                questionVO.setFavour(questionFavour.getUserId().equals(userId));
-            }
+        User loginUser = userFeignClient.getLoginUser(request);
+        if (loginUser != null) {
+            //2. 根据文章id查询当前用户是否收藏
+            QueryWrapper<QuestionFavour> questionFavourQueryWrapper = new QueryWrapper<>();
+            questionFavourQueryWrapper.eq("question_id", questionId);
+            questionFavourQueryWrapper.eq("user_id", loginUser.getId());
+            QuestionFavour questionFavours = questionFavourMapper.selectOne(questionFavourQueryWrapper);
+            questionVO.setFavour(questionFavours != null);
+            // 3. 根据文章id查询当前用户是否点赞
+            QueryWrapper<QuestionThumb> questionThumbQueryWrapper = new QueryWrapper<>();
+            questionThumbQueryWrapper.eq("question_id", questionId);
+            questionThumbQueryWrapper.eq("user_id", loginUser.getId());
+            QuestionThumb questionThumbs = questionThumbMapper.selectOne(questionThumbQueryWrapper);
+            questionVO.setThumb(questionThumbs != null);
         }
-        // 3. 根据文章id查询当前用户是否点赞
-        QueryWrapper<QuestionThumb> queryWrapper2 = new QueryWrapper<>();
-        queryWrapper2.eq("question_id", questionId);
-        List<QuestionThumb> questionThumbs = questionThumbMapper.selectList(queryWrapper2);
-        if (questionThumbs.isEmpty()) {
-            questionVO.setThumb(false);
-        } else {
-            for (QuestionThumb questionThumb : questionThumbs) {
-                questionVO.setThumb(questionThumb.getUserId().equals(userId));
-            }
-        }
-
         return questionVO;
     }
 

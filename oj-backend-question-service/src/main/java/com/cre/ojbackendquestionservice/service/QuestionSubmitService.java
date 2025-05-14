@@ -9,6 +9,8 @@ import com.cre.ojbackendmodel.model.request.questionsubmit.QuestionSubmitAddRequ
 import com.cre.ojbackendmodel.model.request.questionsubmit.QuestionSubmitQueryRequest;
 import com.cre.ojbackendmodel.model.vo.QuestionSubmitVO;
 
+import javax.servlet.http.HttpServletRequest;
+
 
 public interface QuestionSubmitService extends IService<QuestionSubmit> {
 
@@ -30,5 +32,5 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
     /**
      * 获取问题提交对象分页（脱敏）
      */
-    Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser);
+    Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser, HttpServletRequest request);
 }

@@ -58,6 +58,10 @@ public class QuestionSubmitVO implements Serializable {
      * 相关问题信息
      */
     private QuestionVO questionVO;
+    /**
+     * 该条记录的用户信息
+     */
+    private UserVO userVO;
 
     /**
      * 包装类转对象
