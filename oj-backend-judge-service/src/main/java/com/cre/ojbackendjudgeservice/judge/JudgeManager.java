@@ -13,9 +13,6 @@ import org.springframework.stereotype.Service;
 public class JudgeManager {
     /**
      * 执行判题
-     *
-     * @param judgeContext
-     * @return
      */
     JudgeInfo doJudge(JudgeContext judgeContext) {
         QuestionSubmit questionSubmit = judgeContext.getQuestionSubmit();
