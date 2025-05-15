@@ -37,7 +37,6 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Resource
     private UserFeignClient userFeignClient;
 
-
     @Override
     public void addComment(CommentAddRequest commentAddRequest, long userId) {
         String content = commentAddRequest.getContent();

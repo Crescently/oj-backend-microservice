@@ -14,11 +14,8 @@ import java.time.LocalDateTime;
 @Data
 public class PostThumb implements Serializable {
 
-    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
-    /**
-     * id
-     */
+
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
     /**

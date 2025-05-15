@@ -85,6 +85,9 @@ public class PostController {
         return BaseResponse.success(b);
     }
 
+    /**
+     * 更新帖子浏览量
+     */
     @GetMapping("/update/view")
     public BaseResponse<Boolean> updatePostView(Long id, HttpServletRequest request) {
         if (id == null || id <= 0) {

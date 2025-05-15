@@ -18,6 +18,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 
+/**
+ * 问题点赞接口
+ */
 @RestController
 @RequestMapping("/thumb")
 @Slf4j
@@ -31,10 +34,6 @@ public class QuestionThumbController {
 
     /**
      * 点赞 / 取消点赞
-     *
-     * @param questionThumbAddRequest questionThumbAddRequest
-     * @param request request
-     * @return resultNum 本次点赞变化数
      */
     @PostMapping("/")
     public BaseResponse<Integer> doThumb(@RequestBody QuestionThumbAddRequest questionThumbAddRequest, HttpServletRequest request) {

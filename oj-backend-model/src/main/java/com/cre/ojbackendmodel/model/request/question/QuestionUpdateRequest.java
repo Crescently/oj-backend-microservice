@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 更新请求
+ * 更新请求 （管理员）
  */
 @Data
 public class QuestionUpdateRequest implements Serializable {

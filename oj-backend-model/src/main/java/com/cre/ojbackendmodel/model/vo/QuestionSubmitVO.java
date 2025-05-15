@@ -10,9 +10,7 @@ import org.springframework.beans.BeanUtils;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 题目
- */
+
 @Data
 public class QuestionSubmitVO implements Serializable {
     private static final long serialVersionUID = 1L;

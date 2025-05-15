@@ -1,12 +1,9 @@
 package com.cre.ojbackenduserservice.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-
-import com.cre.ojbackendcommon.annotation.AuthCheck;
 import com.cre.ojbackendcommon.common.BaseResponse;
 import com.cre.ojbackendcommon.common.DeleteRequest;
 import com.cre.ojbackendcommon.common.ErrorCode;
-import com.cre.ojbackendcommon.constant.UserConstant;
 import com.cre.ojbackendcommon.exception.BusinessException;
 import com.cre.ojbackendmodel.model.entity.User;
 import com.cre.ojbackendmodel.model.request.admin.UserAddRequest;
@@ -30,7 +27,6 @@ public class AdminController {
      * 获取用户列表 (仅管理员)
      */
     @PostMapping("/list")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest) {
         long current = userQueryRequest.getCurrent();
         long size = userQueryRequest.getPageSize();
@@ -42,8 +38,7 @@ public class AdminController {
      * 删除用户
      */
     @DeleteMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse deleteUser(@RequestBody DeleteRequest deleteRequest) {
+    public BaseResponse<?> deleteUser(@RequestBody DeleteRequest deleteRequest) {
         if (deleteRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -55,8 +50,7 @@ public class AdminController {
      * 添加用户
      */
     @PutMapping("/add")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse addUser(@RequestBody UserAddRequest userAddRequest) {
+    public BaseResponse<?> addUser(@RequestBody UserAddRequest userAddRequest) {
         if (userAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -68,7 +62,6 @@ public class AdminController {
      * 更新用户
      */
     @PutMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse updateUser(@RequestBody UserInfoUpdateRequest userInfoUpdateRequest) {
         if (userInfoUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

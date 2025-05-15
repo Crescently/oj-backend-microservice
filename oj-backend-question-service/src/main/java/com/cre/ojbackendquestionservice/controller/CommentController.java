@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 问题评论接口
+ */
 @RestController
 @RequestMapping("/comment")
 @Slf4j
@@ -31,8 +34,11 @@ public class CommentController {
     @Resource
     private UserFeignClient userFeignClient;
 
+    /**
+     * 添加评论
+     */
     @PostMapping("/add")
-    public BaseResponse addComment(@RequestBody CommentAddRequest commentAddRequest, HttpServletRequest request) {
+    public BaseResponse<?> addComment(@RequestBody CommentAddRequest commentAddRequest, HttpServletRequest request) {
         if (commentAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -41,7 +47,9 @@ public class CommentController {
         return BaseResponse.success();
     }
 
-
+    /**
+     * 分页获取评论
+     */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<CommentVO>> listCommentVOByPage(@RequestBody CommentQueryRequest commentQueryRequest, HttpServletRequest request) {
         long current = commentQueryRequest.getCurrent();

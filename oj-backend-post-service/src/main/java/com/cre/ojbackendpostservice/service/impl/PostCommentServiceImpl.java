@@ -35,14 +35,14 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
 
 
     @Override
-    public void addPostComment(PostCommentAddRequest postCommentAddRequest, long userId) {
+    public Integer addPostComment(PostCommentAddRequest postCommentAddRequest, long userId) {
         String content = postCommentAddRequest.getContent();
         Long postId = postCommentAddRequest.getPostId();
         PostComment postComment = new PostComment();
         postComment.setContent(content);
         postComment.setUserId(userId);
         postComment.setPostId(postId);
-        postCommentMapper.insert(postComment);
+        return postCommentMapper.insert(postComment);
     }
 
 

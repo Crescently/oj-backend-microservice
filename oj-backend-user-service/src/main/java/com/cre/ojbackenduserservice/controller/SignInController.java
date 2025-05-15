@@ -22,12 +22,18 @@ public class SignInController {
     @Resource
     private UserService userService;
 
+    /**
+     * 用户签到
+     */
     @PostMapping("/post")
     public BaseResponse signIn(@RequestBody IdRequest idRequest) {
         boolean success = signInService.signIn(idRequest.getUserId());
         return BaseResponse.success(success);
     }
 
+    /**
+     * 获取签到日期列表
+     */
     @GetMapping("/get")
     public BaseResponse<List<SignInRecord>> getSignedDates(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);

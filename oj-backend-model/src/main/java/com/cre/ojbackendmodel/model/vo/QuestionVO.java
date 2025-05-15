@@ -11,9 +11,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 题目
- */
+
 @Data
 public class QuestionVO implements Serializable {
     private static final long serialVersionUID = 1L;

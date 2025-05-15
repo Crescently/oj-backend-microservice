@@ -32,9 +32,18 @@ public interface QuestionService extends IService<Question> {
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
 
+    /**
+     * 获取历史提交问题分页（脱敏）
+     */
     Page<QuestionVO> getHistoryQuestionVOPage(Page<QuestionSubmit> questionSubmitPage, long userId);
 
+    /**
+     * 更新提交和通过数
+     */
     void updateSubmitAndAcceptedNum();
 
+    /**
+     * 获取问题答案
+     */
     String getQuestionAnswerById(Long questionId, HttpServletRequest request);
 }

@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * 签到记录
+ */
 @Data
 @TableName("user_sign_in")
 public class SignInRecord {
@@ -13,8 +16,14 @@ public class SignInRecord {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    /**
+     * 用户 id
+     */
     private Long userId;
 
+    /**
+     * 签到时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime signDate;
     /**

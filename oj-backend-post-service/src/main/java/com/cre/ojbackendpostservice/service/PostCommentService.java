@@ -14,9 +14,14 @@ import javax.servlet.http.HttpServletRequest;
  * 帖子评论服务
  */
 public interface PostCommentService extends IService<PostComment> {
-    void addPostComment(PostCommentAddRequest postCommentAddRequest, long userId);
+    /**
+     * 添加评论
+     */
+    Integer addPostComment(PostCommentAddRequest postCommentAddRequest, long userId);
 
-
+    /**
+     * 获取查询条件
+     */
     Wrapper<PostComment> getQueryWrapper(PostCommentQueryRequest postCommentQueryRequest);
 
     /**

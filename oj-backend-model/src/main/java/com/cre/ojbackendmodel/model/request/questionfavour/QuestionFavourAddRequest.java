@@ -4,7 +4,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-
+/**
+ * 问题收藏 | 取消收藏请求
+ */
 @Data
 public class QuestionFavourAddRequest implements Serializable {
 

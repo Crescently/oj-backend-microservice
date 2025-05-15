@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
 public class QuestionSubmit implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    /**
-     * id
-     */
+
+
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 

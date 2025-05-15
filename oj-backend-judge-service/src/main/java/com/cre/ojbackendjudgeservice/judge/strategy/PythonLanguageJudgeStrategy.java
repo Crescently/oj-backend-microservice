@@ -11,7 +11,7 @@ import com.cre.ojbackendmodel.model.request.question.JudgeConfig;
 import java.util.List;
 
 /**
- * 默认判题策略
+ * Python判题策略
  */
 public class PythonLanguageJudgeStrategy implements JudgeStrategy {
     /**

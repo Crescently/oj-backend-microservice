@@ -6,6 +6,9 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
+/**
+ * 帖子评论查询请求
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PostCommentQueryRequest extends PageRequest implements Serializable {

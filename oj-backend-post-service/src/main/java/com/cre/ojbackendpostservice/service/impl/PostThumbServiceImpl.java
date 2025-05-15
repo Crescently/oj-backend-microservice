@@ -19,9 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 帖子点赞服务实现
- */
+
 @Service
 public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb> implements PostThumbService {
 
@@ -31,9 +29,7 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
     @Resource
     private RedissonClient redissonClient;
 
-    /**
-     * 点赞
-     */
+
     @Override
     public int doPostThumb(long postId, User loginUser) {
         // 判断实体是否存在，根据类别获取实体
@@ -66,9 +62,7 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
         }
     }
 
-    /**
-     * 封装了事务的方法
-     */
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int doPostThumbInner(long userId, long postId) {

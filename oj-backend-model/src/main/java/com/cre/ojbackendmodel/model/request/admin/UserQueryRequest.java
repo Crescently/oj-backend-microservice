@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 /**
- * 获取用户信息列表请求
+ * 获取用户信息列表请求 （管理员）
  */
 
 @EqualsAndHashCode(callSuper = true)

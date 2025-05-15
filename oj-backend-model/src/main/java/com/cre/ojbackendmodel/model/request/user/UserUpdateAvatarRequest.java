@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 用户头像更新请求
+ */
 @Data
 public class UserUpdateAvatarRequest implements Serializable {
 

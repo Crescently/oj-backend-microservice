@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
+/**
+ * 定时任务
+ */
 @Component
 public class QuestionScheduler {
 

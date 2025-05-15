@@ -2,6 +2,9 @@ package com.cre.ojbackendmodel.model.request.question;
 
 import lombok.Data;
 
+/**
+ * 判题用例
+ */
 @Data
 public class JudgeCase {
     /**

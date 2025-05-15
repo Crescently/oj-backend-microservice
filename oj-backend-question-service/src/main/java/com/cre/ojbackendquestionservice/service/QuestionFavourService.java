@@ -11,14 +11,20 @@ import com.cre.ojbackendmodel.model.entity.User;
 
 public interface QuestionFavourService extends IService<QuestionFavour> {
 
-
+    /**
+     * 点赞问题
+     */
     int doQuestionFavour(Long questionId, User loginUser);
 
-
+    /**
+     * 获取用户点赞的问题
+     */
     Page<Question> listFavourQuestionByPage(IPage<Question> page, Wrapper<Question> queryWrapper,
                                             Long userId);
 
-
+    /**
+     * 点赞问题（内部）
+     */
     int doQuestionFavourInner(Long userId, Long questionId);
 
 }

@@ -35,9 +35,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * 帖子服务实现
- */
+
 @Service
 @Slf4j
 public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements PostService {
@@ -79,9 +77,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
     }
 
-    /**
-     * 获取查询包装类
-     */
+
     @Override
     public QueryWrapper<Post> getQueryWrapper(PostQueryRequest postQueryRequest) {
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();

@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
 @Data
 public class Question implements Serializable {
     private static final long serialVersionUID = 1L;
-    /**
-     * id
-     */
+
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 

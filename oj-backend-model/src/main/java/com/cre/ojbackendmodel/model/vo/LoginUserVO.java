@@ -7,9 +7,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 用户登录响应
- */
+
 @Data
 public class LoginUserVO implements Serializable {
 

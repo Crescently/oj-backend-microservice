@@ -22,9 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 帖子收藏服务实现
- */
+
 @Service
 public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFavour> implements PostFavourService {
 
@@ -33,9 +31,7 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
     @Resource
     private RedissonClient redissonClient;
 
-    /**
-     * 帖子收藏
-     */
+
     @Override
     public int doPostFavour(long postId, User loginUser) {
         // 判断是否存在
@@ -76,9 +72,7 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
         return baseMapper.listFavourPostByPage(page, queryWrapper, userId);
     }
 
-    /**
-     * 封装了事务的方法
-     */
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int doPostFavourInner(long userId, long postId) {

@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 用户实体类
+ * 用户
  */
 @Data
 @TableName("user")
@@ -21,9 +21,7 @@ import java.time.LocalDateTime;
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * id
-     */
+
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 

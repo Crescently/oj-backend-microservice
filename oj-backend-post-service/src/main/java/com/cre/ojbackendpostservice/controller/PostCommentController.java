@@ -34,17 +34,22 @@ public class PostCommentController {
     @Resource
     private UserFeignClient userFeignClient;
 
+    /**
+     * 添加帖子评论
+     */
     @PostMapping("/add")
-    public BaseResponse addPostComment(@RequestBody PostCommentAddRequest postCommentAddRequest, HttpServletRequest request) {
+    public BaseResponse<Integer> addPostComment(@RequestBody PostCommentAddRequest postCommentAddRequest, HttpServletRequest request) {
         if (postCommentAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userFeignClient.getLoginUser(request);
-        postCommentService.addPostComment(postCommentAddRequest, loginUser.getId());
-        return BaseResponse.success();
+        Integer addPostComment = postCommentService.addPostComment(postCommentAddRequest, loginUser.getId());
+        return BaseResponse.success(addPostComment);
     }
 
-
+    /**
+     * 分页获取帖子评论
+     */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<PostCommentVO>> listPostCommentVOByPage(@RequestBody PostCommentQueryRequest postCommentQueryRequest, HttpServletRequest request) {
         long current = postCommentQueryRequest.getCurrent();

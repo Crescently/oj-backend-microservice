@@ -12,9 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 
 
 public interface CommentService extends IService<Comment> {
+    /**
+     * 添加评论
+     */
     void addComment(CommentAddRequest commentAddRequest, long userId);
 
-
+    /**
+     * 获取评论对象查询条件
+     */
     Wrapper<Comment> getQueryWrapper(CommentQueryRequest commentQueryRequest);
 
     /**

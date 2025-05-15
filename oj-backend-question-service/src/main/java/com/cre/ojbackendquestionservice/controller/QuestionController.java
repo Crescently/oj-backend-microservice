@@ -2,11 +2,9 @@ package com.cre.ojbackendquestionservice.controller;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.cre.ojbackendcommon.annotation.AuthCheck;
 import com.cre.ojbackendcommon.common.BaseResponse;
 import com.cre.ojbackendcommon.common.DeleteRequest;
 import com.cre.ojbackendcommon.common.ErrorCode;
-import com.cre.ojbackendcommon.constant.UserConstant;
 import com.cre.ojbackendcommon.exception.BusinessException;
 import com.cre.ojbackendcommon.exception.ThrowUtils;
 import com.cre.ojbackendmodel.model.entity.Question;
@@ -105,11 +103,12 @@ public class QuestionController {
      * 更新（仅管理员）
      */
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateQuestion(@RequestBody QuestionUpdateRequest questionUpdateRequest) {
+    public BaseResponse<Boolean> updateQuestion(@RequestBody QuestionUpdateRequest questionUpdateRequest,HttpServletRequest request) {
         if (questionUpdateRequest == null || questionUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        User user = userFeignClient.getLoginUser(request);
+        ThrowUtils.throwIf(!userFeignClient.isAdmin(user), ErrorCode.NO_AUTH_ERROR);
         Question question = new Question();
         BeanUtils.copyProperties(questionUpdateRequest, question);
         List<String> tags = questionUpdateRequest.getTags();
@@ -172,8 +171,11 @@ public class QuestionController {
      * 分页获取列表（仅管理员）
      */
     @PostMapping("/list/page/question")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest) {
+    public BaseResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest, HttpServletRequest request) {
+        User loginUser = userFeignClient.getLoginUser(request);
+        if (!userFeignClient.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
         Page<Question> questionPage = questionService.page(new Page<>(current, size), questionService.getQueryWrapper(questionQueryRequest));
@@ -214,42 +216,6 @@ public class QuestionController {
         return BaseResponse.success(questionService.getHistoryQuestionVOPage(questionSubmitPage, loginUser.getId()));
     }
 
-    /**
-     * 编辑（用户）
-     */
-    @PostMapping("/edit")
-    public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest, HttpServletRequest request) {
-        if (questionEditRequest == null || questionEditRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        Question question = new Question();
-        BeanUtils.copyProperties(questionEditRequest, question);
-        List<String> tags = questionEditRequest.getTags();
-        if (tags != null) {
-            question.setTags(JSONUtil.toJsonStr(tags));
-        }
-        List<JudgeCase> judgeCase = questionEditRequest.getJudgeCase();
-        if (judgeCase != null) {
-            question.setJudgeCase(JSONUtil.toJsonStr(judgeCase));
-        }
-        JudgeConfig judgeConfig = questionEditRequest.getJudgeConfig();
-        if (judgeConfig != null) {
-            question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
-        }
-        // 参数校验
-        questionService.validQuestion(question, false);
-        User loginUser = userFeignClient.getLoginUser(request);
-        long id = questionEditRequest.getId();
-        // 判断是否存在
-        Question oldQuestion = questionService.getById(id);
-        ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
-        // 仅本人或管理员可编辑
-        if (!oldQuestion.getUserId().equals(loginUser.getId()) && !userFeignClient.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-        boolean result = questionService.updateById(question);
-        return BaseResponse.success(result);
-    }
 
     /**
      * 提交题目
@@ -279,6 +245,9 @@ public class QuestionController {
         return BaseResponse.success(questionSubmitService.getQuestionSubmitVOPage(questionPage, loginUser, request));
     }
 
+    /**
+     * 分页获取列表（封装类）
+     */
     @PostMapping("/get/answer")
     public BaseResponse<String> getQuestionAnswerById(Long id, HttpServletRequest request) {
         String answer = questionService.getQuestionAnswerById(id, request);

@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 题目收藏接口
+ */
 @RestController
 @RequestMapping("/favour")
 @Slf4j
@@ -38,10 +41,6 @@ public class QuestionFavourController {
 
     /**
      * 问题收藏
-     *
-     * @param questionFavourAddRequest questionFavourAddRequest
-     * @param request                  request
-     * @return
      */
     @PostMapping("/")
     public BaseResponse<Integer> doQuestionFavour(@RequestBody QuestionFavourAddRequest questionFavourAddRequest, HttpServletRequest request) {
@@ -60,10 +59,6 @@ public class QuestionFavourController {
 
     /**
      * 获取用户自己的收藏的问题列表
-     *
-     * @param questionQueryRequest questionQueryRequest
-     * @param request              request
-     * @return
      */
     @PostMapping("/my/list/page")
     public BaseResponse<Page<QuestionVO>> listMyFavourQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest, HttpServletRequest request) {

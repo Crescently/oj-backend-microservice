@@ -13,9 +13,18 @@ import java.util.List;
 @AllArgsConstructor
 public class ExecuteCodeRequest {
 
+    /**
+     * 输入用例组
+     */
     private List<String> inputList;
 
+    /**
+     * 代码
+     */
     private String code;
 
+    /**
+     * 语言
+     */
     private String language;
 }
