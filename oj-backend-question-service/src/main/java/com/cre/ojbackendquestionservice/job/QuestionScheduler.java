@@ -12,8 +12,8 @@ public class QuestionScheduler {
     @Resource
     private QuestionService questionService;
 
-    // 每10min执行一次
-    @Scheduled(cron = "0 */10 * * * ?")
+    // 每5min执行一次
+    @Scheduled(cron = "0 */5 * * * ?")
     public void updateQuestionStats() {
         questionService.updateSubmitAndAcceptedNum();
     }
